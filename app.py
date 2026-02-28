@@ -105,10 +105,10 @@ def get_col(df, substring):
 # =================================================================
 # 4. USER INTERFACE & PLOTTING
 # =================================================================
-st.title("📊 Smári Compliance Dashboard Generator")
+st.title("📊 Smári DX Annual Survey Plot Generator")
 st.markdown("Enter the Smári Report ID from your finalized annual survey to generate the 2x2 PDF-scaled dashboard.")
 
-report_id = st.text_input("Smári Report ID", placeholder="e.g. 738298")
+report_id = st.text_input("Smári Report ID", placeholder="e.g. 123456")
 
 if st.button("Generate Dashboard", type="primary"):
     if not report_id:
@@ -212,3 +212,4 @@ if st.button("Generate Dashboard", type="primary"):
 
             except Exception as e:
                 st.error(f"Data retrieval failed: {e}. Verify the Report ID and ensure the Smári report is saved.")
+
