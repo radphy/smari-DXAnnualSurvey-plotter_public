@@ -65,9 +65,13 @@ def extract_table(raw_json, id_map, table_vid_str):
         if isinstance(obj, dict):
             vid = obj.get('variableId')
             if vid is not None and str(vid) == table_vid_str: return obj
-            for v in obj.values(): r = find_t(v); if r: return r
+            for v in obj.values():
+                r = find_t(v)
+                if r: return r
         elif isinstance(obj, list):
-            for item in obj: r = find_t(item); if r: return r
+            for item in obj:
+                r = find_t(item)
+                if r: return r
     
     table_node = find_t(raw_json)
     if not table_node: return pd.DataFrame()
