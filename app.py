@@ -106,11 +106,11 @@ def get_col(df, substring):
 # 4. USER INTERFACE & PLOTTING
 # =================================================================
 st.title("📊 Smári DX Annual Survey Plot Generator")
-st.markdown("Enter the Smári Report ID from your finalized annual survey to generate the 2x2 PDF-scaled dashboard.")
+st.markdown("Enter the Smári Report ID from your saved annual survey to generate the X-ray Tube related plot.")
 
 report_id = st.text_input("Smári Report ID", placeholder="e.g. 123456")
 
-if st.button("Generate Dashboard", type="primary"):
+if st.button("Generate Plot", type="primary"):
     if not report_id:
         st.warning("Please enter a valid Report ID.")
     else:
@@ -198,19 +198,20 @@ if st.button("Generate Dashboard", type="primary"):
                 buf.seek(0)
                 
                 # Display success and download button
-                st.success("Dashboard successfully generated!")
+                st.success("Plot successfully generated!")
                 st.download_button(
-                    label="📥 Download Dashboard Image",
+                    label="📥 Download Plot Image",
                     data=buf,
-                    file_name=f"smari_dashboard_{report_id}.png",
+                    file_name=f"smari_Plot_{report_id}.png",
                     mime="image/png",
                     type="primary"
                 )
                 
                 # Show a preview on the web page
-                st.image(buf, caption="Dashboard Preview (Scaled for PDF)", use_container_width=True)
+                st.image(buf, caption="Plot Preview (Scaled for PDF)", use_container_width=True)
 
             except Exception as e:
                 st.error(f"Data retrieval failed: {e}. Verify the Report ID and ensure the Smári report is saved.")
+
 
 
