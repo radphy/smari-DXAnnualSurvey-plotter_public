@@ -166,7 +166,7 @@ if st.button("Generate Plot", type="primary"):
                     if not df.empty and get_col(df, 'mr/mas') and get_col(df, 'nominal kv'):
                         df_plot = df.dropna(subset=[get_col(df, 'nominal kv'), get_col(df, 'mr/mas')]).sort_values(by=get_col(df, 'nominal kv'))
                         plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, 'mr/mas')], 'o-', label=label, color=color)
-                plt.plot(list(TG_150_REFERENCE.keys()), list(TG_150_REFERENCE.values()), 's--', color='green', alpha=0.8, label='AAPM TG-150')
+                plt.plot(list(TG_150_REFERENCE.keys()), list(TG_150_REFERENCE.values()), 's--', color='green', alpha=0.8, label='AAPM TG-150 Reference Output')
                 plt.xlabel('Nominal kVp Station'); plt.ylabel('mR/mAs @ 100cm'); plt.title('Tube Output Performance'); plt.grid(True, linestyle='--', alpha=0.6)
                 if plt.gca().get_legend_handles_labels()[0]: plt.legend(loc='upper left')
 
@@ -178,8 +178,8 @@ if st.button("Generate Plot", type="primary"):
                         df_plot = df.dropna(subset=[get_col(df, 'nominal kv'), get_col(df, 'measured hvl')]).sort_values(by=get_col(df, 'nominal kv'))
                         plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, 'measured hvl')], 'o-', label=label, color=color)
                         if not plotted_limits and not df_plot.empty:
-                            if get_col(df, '360.table'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '360.table')], '--', color='red', label='IEMA Limit')
-                            if get_col(df, '1020.30'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '1020.30')], ':', color='purple', label='FDA Limit')
+                            if get_col(df, '360.table'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '360.table')], '--', color='red', label='IEMA 32 IAC 360 Limit')
+                            if get_col(df, '1020.30'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '1020.30')], ':', color='purple', label='FDA 21 CFR 1020.30 Limit')
                             plotted_limits = True
                 plt.xlabel('Nominal kVp Station'); plt.ylabel('HVL (mm Al)'); plt.title('HVL Compliance'); plt.grid(True, linestyle='--', alpha=0.6)
                 handles, labels = plt.gca().get_legend_handles_labels()
@@ -243,4 +243,5 @@ if st.button("Generate Plot", type="primary"):
 
             except Exception as e:
                 st.error(f"Data retrieval failed: {e}. Verify the Report ID and ensure the Smári report is saved.")
+
 
