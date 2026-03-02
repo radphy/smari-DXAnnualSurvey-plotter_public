@@ -181,7 +181,7 @@ if st.button("Generate Plot", type="primary"):
                             plt.plot(df_plot[x_col], df_plot[get_col(df, 'timer accuracy')], 's-', label=label, color=color)
                 plt.axhline(10, color='red', linestyle='--', alpha=0.7, label='+/- 10% Limit'); plt.axhline(-10, color='red', linestyle='--', alpha=0.7)
                 plt.axhline(0, color='black', linewidth=1, alpha=0.5) 
-                plt.xlabel('Nominal Set Point'); plt.ylabel('Deviation (%)'); plt.title('Generator Accuracy'); plt.grid(True, linestyle='--', alpha=0.6)
+                plt.xlabel('Nominal Set Point (kV or ms)'); plt.ylabel('Deviation (%)'); plt.title('Generator Accuracy'); plt.grid(True, linestyle='--', alpha=0.6)
                 handles, labels = plt.gca().get_legend_handles_labels()
                 if handles:
                     data_hl, limit_hl = [(h, l) for h, l in zip(handles, labels) if 'Limit' not in l], [(h, l) for h, l in zip(handles, labels) if 'Limit' in l]
@@ -212,6 +212,7 @@ if st.button("Generate Plot", type="primary"):
 
             except Exception as e:
                 st.error(f"Data retrieval failed: {e}. Verify the Report ID and ensure the Smári report is saved.")
+
 
 
 
