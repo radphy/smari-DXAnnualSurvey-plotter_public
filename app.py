@@ -13,7 +13,7 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.title("🔒 📊 Smári DX Annual Survey Plot Generator"")
+    st.title("🔒 📊 Smári DX Annual Survey Plot Generator")
     pwd = st.text_input("Enter Department Passcode:", type="password")
     if st.button("Login"):
         if pwd == st.secrets["APP_PASSWORD"]:
@@ -243,6 +243,7 @@ if st.button("Generate Plot", type="primary"):
 
             except Exception as e:
                 st.error(f"Data retrieval failed: {e}. Verify the Report ID and ensure the Smári report is saved.")
+
 
 
 
