@@ -21,7 +21,7 @@ if not st.session_state.authenticated:
             st.rerun()
         else:
             st.error("Incorrect Passcode.")
-    st.stop() # Stops the rest of the app from loading until authenticated
+    st.stop() 
 
 # =================================================================
 # 2. APP CONFIGURATION (Sanitized)
@@ -33,7 +33,7 @@ TABLE_IDS = {
 
 TG_150_REFERENCE = {
     50: 1.83, 60: 2.92, 70: 4.13, 80: 5.25, 90: 6.97,
-    100: 8.30, 110: 9.98, 120: 11.73
+    100: 8.30, 110: 9.98, 120: 11.73, 130: 13.31, 140: 15.10
 }
 
 # =================================================================
@@ -102,13 +102,35 @@ def get_col(df, substring):
         if substring.lower() in str(col).lower(): return col
     return None
 
+def extract_survey_date(raw_json):
+    """Recursively searches the Smári JSON for the survey date meta item."""
+    def find_date(obj):
+        if isinstance(obj, dict):
+            if obj.get('metaItemId') == 27707 or obj.get('name') == 'Date of Annual Survey':
+                # Check the most common value keys TotalQA uses for timestamps
+                for key in ['value', 'valueDateTime', 'textValue', 'valueString']:
+                    if obj.get(key):
+                        # Split at 'T' to drop the time payload if it's in ISO format
+                        return str(obj[key]).split('T')[0] 
+            for v in obj.values():
+                res = find_date(v)
+                if res: return res
+        elif isinstance(obj, list):
+            for item in obj:
+                res = find_date(item)
+                if res: return res
+        return None
+    
+    date_str = find_date(raw_json)
+    return date_str if date_str else "Unknown Date"
+
 # =================================================================
 # 4. USER INTERFACE & PLOTTING
 # =================================================================
 st.title("📊 Smári DX Annual Survey Plot Generator")
-st.markdown("Enter the Smári Report ID from your saved annual survey to generate the X-ray Tube related plot.")
+st.markdown("Enter the Smári Report ID from your finalized or saved annual survey to generate the X-ray Tube Plot.")
 
-report_id = st.text_input("Smári Report ID", placeholder="e.g. 123456")
+report_id = st.text_input("Report ID", placeholder="e.g. 123456")
 
 if st.button("Generate Plot", type="primary"):
     if not report_id:
@@ -127,9 +149,16 @@ if st.button("Generate Plot", type="primary"):
                 df_lfs_kv = extract_table(raw_json, id_map, TABLE_IDS['LFS_KV'])
                 df_sfs_lin = extract_table(raw_json, id_map, TABLE_IDS['SFS_LIN'])
                 df_lfs_lin = extract_table(raw_json, id_map, TABLE_IDS['LFS_LIN'])
+                
+                # Automatically extract the survey date
+                survey_date = extract_survey_date(raw_json)
 
                 plt.rcParams.update({'font.size': 9, 'axes.titlesize': 11, 'axes.labelsize': 9, 'xtick.labelsize': 8, 'ytick.labelsize': 8, 'legend.fontsize': 8, 'lines.linewidth': 1.5, 'lines.markersize': 4})
                 fig = plt.figure(figsize=(9, 9))
+
+                # --- OVERARCHING TITLE ---
+                header_text = f"Annual Physics Survey  |  Report: {report_id}  |  Date: {survey_date}"
+                fig.suptitle(header_text, fontsize=12, fontweight='bold', y=1.02)
 
                 # --- Plot 1: Output ---
                 plt.subplot(2, 2, 1)
@@ -137,7 +166,7 @@ if st.button("Generate Plot", type="primary"):
                     if not df.empty and get_col(df, 'mr/mas') and get_col(df, 'nominal kv'):
                         df_plot = df.dropna(subset=[get_col(df, 'nominal kv'), get_col(df, 'mr/mas')]).sort_values(by=get_col(df, 'nominal kv'))
                         plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, 'mr/mas')], 'o-', label=label, color=color)
-                plt.plot(list(TG_150_REFERENCE.keys()), list(TG_150_REFERENCE.values()), 's--', color='green', alpha=0.8, label='AAPM TG-150 Ref Output')
+                plt.plot(list(TG_150_REFERENCE.keys()), list(TG_150_REFERENCE.values()), 's--', color='green', alpha=0.8, label='AAPM TG-150')
                 plt.xlabel('Nominal kVp Station'); plt.ylabel('mR/mAs @ 100cm'); plt.title('Tube Output Performance'); plt.grid(True, linestyle='--', alpha=0.6)
                 if plt.gca().get_legend_handles_labels()[0]: plt.legend(loc='upper left')
 
@@ -149,8 +178,8 @@ if st.button("Generate Plot", type="primary"):
                         df_plot = df.dropna(subset=[get_col(df, 'nominal kv'), get_col(df, 'measured hvl')]).sort_values(by=get_col(df, 'nominal kv'))
                         plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, 'measured hvl')], 'o-', label=label, color=color)
                         if not plotted_limits and not df_plot.empty:
-                            if get_col(df, '360.table'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '360.table')], '--', color='red', label='IEMA 32 IAC 360 Limit')
-                            if get_col(df, '1020.30'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '1020.30')], ':', color='purple', label='FDA 21 CFR 1020.30 Limit')
+                            if get_col(df, '360.table'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '360.table')], '--', color='red', label='IEMA Limit')
+                            if get_col(df, '1020.30'): plt.plot(df_plot[get_col(df, 'nominal kv')], df_plot[get_col(df, '1020.30')], ':', color='purple', label='FDA Limit')
                             plotted_limits = True
                 plt.xlabel('Nominal kVp Station'); plt.ylabel('HVL (mm Al)'); plt.title('HVL Compliance'); plt.grid(True, linestyle='--', alpha=0.6)
                 handles, labels = plt.gca().get_legend_handles_labels()
@@ -181,7 +210,7 @@ if st.button("Generate Plot", type="primary"):
                             plt.plot(df_plot[x_col], df_plot[get_col(df, 'timer accuracy')], 's-', label=label, color=color)
                 plt.axhline(10, color='red', linestyle='--', alpha=0.7, label='+/- 10% Limit'); plt.axhline(-10, color='red', linestyle='--', alpha=0.7)
                 plt.axhline(0, color='black', linewidth=1, alpha=0.5) 
-                plt.xlabel('Nominal Set Point (kV or ms)'); plt.ylabel('Deviation (%)'); plt.title('Generator Accuracy'); plt.grid(True, linestyle='--', alpha=0.6)
+                plt.xlabel('Nominal Set Point'); plt.ylabel('Deviation (%)'); plt.title('Generator Accuracy'); plt.grid(True, linestyle='--', alpha=0.6)
                 handles, labels = plt.gca().get_legend_handles_labels()
                 if handles:
                     data_hl, limit_hl = [(h, l) for h, l in zip(handles, labels) if 'Limit' not in l], [(h, l) for h, l in zip(handles, labels) if 'Limit' in l]
@@ -190,7 +219,9 @@ if st.button("Generate Plot", type="primary"):
                         if l not in [ul for uh, ul in unique_limits]: unique_limits.append((h, l))
                     plt.legend([h for h, l in data_hl + unique_limits], [l for h, l in data_hl + unique_limits], loc='best')
 
+                # Layout calculation
                 plt.tight_layout(pad=1.5, w_pad=2.0, h_pad=2.0)
+                fig.subplots_adjust(top=0.92)
                 
                 # Save plot to in-memory buffer at 600 DPI with transparency
                 buf = io.BytesIO()
@@ -212,7 +243,3 @@ if st.button("Generate Plot", type="primary"):
 
             except Exception as e:
                 st.error(f"Data retrieval failed: {e}. Verify the Report ID and ensure the Smári report is saved.")
-
-
-
-
