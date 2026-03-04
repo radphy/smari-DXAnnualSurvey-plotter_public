@@ -33,7 +33,7 @@ TABLE_IDS = {
 
 TG_150_REFERENCE = {
     50: 1.83, 60: 2.92, 70: 4.13, 80: 5.25, 90: 6.97,
-    100: 8.30, 110: 9.98, 120: 11.73
+    100: 8.30, 110: 9.98, 120: 11.73, 130: 13.31, 140: 15.10
 }
 
 # =================================================================
@@ -243,6 +243,7 @@ if st.button("Generate Plot", type="primary"):
 
             except Exception as e:
                 st.error(f"Data retrieval failed: {e}. Verify the Report ID and ensure the Smári report is saved.")
+
 
 
 
